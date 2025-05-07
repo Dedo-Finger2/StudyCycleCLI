@@ -19,6 +19,7 @@ namespace StudyCycleCLI.Model
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? LastStudiedAt { get; set; }
+        public List<StudyCycleSubject> Subjects { get; set; }
 
         public StudyCycle() { }
     }
