@@ -10,6 +10,7 @@ namespace StudyCycleCLI.Model
     {
         public int Id { get; set; }
         public int StudyCycleId { get; set; }
+        public StudyCycle StudyCycle { get; set; }
         public string Title { get; set; }
         public Difficulty Difficulty { get; set; }
         public AmountOfContent AmountOfContent { get; set; }
