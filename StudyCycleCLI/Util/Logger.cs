@@ -46,7 +46,9 @@ public static class Logger
         
         var logMessage = FormatLogMessage("ERROR", message, exception.StackTrace);
         
-        File.WriteAllText(LogFilePath, logMessage);
+        using var streamWriter = File.AppendText(LogFilePath);
+        streamWriter.WriteLine(logMessage);
+        streamWriter.Close();
     }
 
     public static void Warning(string message, Exception exception)
@@ -55,6 +57,8 @@ public static class Logger
         
         var logMessage = FormatLogMessage("WARNING", message, exception.StackTrace);
         
-        File.WriteAllText(LogFilePath, logMessage);
+        using var streamWriter = File.AppendText(LogFilePath);
+        streamWriter.WriteLine(logMessage);
+        streamWriter.Close();
     }
 }
