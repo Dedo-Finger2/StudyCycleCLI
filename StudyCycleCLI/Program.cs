@@ -1,4 +1,5 @@
-﻿using StudyCycleCLI.Model;
+﻿using Microsoft.EntityFrameworkCore;
+using StudyCycleCLI.Model;
 using StudyCycleCLI.Util;
 using static System.Double;
 using static System.Int32;
@@ -7,7 +8,7 @@ namespace StudyCycleCLI
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             try
             {
@@ -46,7 +47,7 @@ namespace StudyCycleCLI
                     throw new Exception($"invalid command '{command}' for entity '{entity}'.");
                 }
 
-                if (entity == "cycle" && command == "create") CreateCycleCommand(arguments);
+                if (entity == "cycle" && command == "create") await CreateCycleCommand(arguments);
             }
             catch (Exception e)
             {
@@ -55,7 +56,7 @@ namespace StudyCycleCLI
             }
         }
 
-        private static void CreateCycleCommand(string[] arguments)
+        static async Task CreateCycleCommand(string[] arguments)
         {
             const double factorTwo = 60.0;
 
@@ -157,6 +158,18 @@ namespace StudyCycleCLI
                 WeeklyStudyHours = dailyStudyHours * 7,
                 Subjects = subjects
             };
+            try
+            {
+                using var db = new AppDbContext();
+
+                db.StudyCycles.Add(studyCycle);
+
+                await db.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
 }
