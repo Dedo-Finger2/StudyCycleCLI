@@ -21,5 +21,14 @@ namespace StudyCycleCLI.Model
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => optionsBuilder.UseSqlite($"Data Source={this.DbPath}");
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<StudyCycle>()
+                .HasMany(sc => sc.Subjects)
+                .WithOne(scs => scs.StudyCycle)
+                .HasForeignKey(scs => scs.StudyCycleId)
+                .OnDelete(DeleteBehavior.Cascade);
+        }
     }
 }
