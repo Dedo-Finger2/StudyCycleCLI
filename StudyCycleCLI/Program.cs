@@ -48,14 +48,13 @@ namespace StudyCycleCLI
                     throw new Exception($"invalid command '{command}' for entity '{entity}'.");
                 }
 
-                if (entity == "cycle" && command == "create"  ) { await CreateCycleCommand(arguments) ;  return; }
-                if (entity == "cycle" && command == "find"    ) { FindStudyCycleByTitle(arguments)    ;  return; }
-                if (entity == "cycle" && command == "complete") { await TryToCompleteCycle(arguments) ;  return; }
-                if (entity == "cycle" && command == "view"    ) { ViewStudyCycle(arguments)           ;  return; }
-                if (entity == "cycle" && command == "study"   ) { await StudyCycleSubject(arguments)  ;  return; }
-                if (entity == "cycle" && command == "study"   ) { await StudyCycleSubject(arguments)  ;  return; }
-                if (entity == "cycle" && command == "unstudy" ) { await UnstudyCycleSubject(arguments);  return; }
-                if (entity == "cycle" && command == "delete"  ) { await DeleteStudyCycle(arguments)   ;  return; }
+                if (entity == "cycle" && command == "create"  ) { await CreateCycleCommandAsync  (arguments);  return; }
+                if (entity == "cycle" && command == "find"    ) { FindStudyCycleByTitleSync      (arguments);  return; }
+                if (entity == "cycle" && command == "complete") { await TryToCompleteCycleAsync  (arguments);  return; }
+                if (entity == "cycle" && command == "view"    ) { ViewStudyCycleSync             (arguments);  return; }
+                if (entity == "cycle" && command == "study"   ) { await StudyCycleSubjectAsync   (arguments);  return; }
+                if (entity == "cycle" && command == "unstudy" ) { await UnstudyCycleSubjectAsync (arguments);  return; }
+                if (entity == "cycle" && command == "delete"  ) { await DeleteStudyCycleAsync    (arguments);  return; }
 
                 Console.WriteLine($"Command '{command}' of entity '{entity}' is not implemented yet.");
             }
@@ -67,7 +66,7 @@ namespace StudyCycleCLI
         }
 
         // Commands
-        static async Task DeleteStudyCycle(string[] arguments)
+        static async Task DeleteStudyCycleAsync(string[] arguments)
         {
             if (arguments.Length == 0) throw new Exception("missing required argument: 'id'.");
 
@@ -86,7 +85,7 @@ namespace StudyCycleCLI
             Console.WriteLine($"'{studyCycle.Title}' was deleted!");
         }
 
-        static async Task UnstudyCycleSubject(string[] arguments)
+        static async Task UnstudyCycleSubjectAsync(string[] arguments)
         {
             if (arguments.Length == 0) throw new Exception("missing required argument: 'study cycle id'.");
             if (arguments.Length < 3) throw new Exception("missing required argument: 'subject id'.");
@@ -116,7 +115,7 @@ namespace StudyCycleCLI
             Console.WriteLine($"Removed 1h from '{subject.Title}'!");
         }
 
-        static async Task StudyCycleSubject(string[] arguments)
+        static async Task StudyCycleSubjectAsync(string[] arguments)
         {
             if (arguments.Length == 0) throw new Exception("missing required argument: 'study cycle id'.");
             if (arguments.Length < 3) throw new Exception("missing required argument: 'subject id'.");
@@ -146,7 +145,7 @@ namespace StudyCycleCLI
             Console.WriteLine($"Added 1h to '{subject.Title}'!");
         }
 
-        static void ViewStudyCycle(string[] arguments)
+        static void ViewStudyCycleSync(string[] arguments)
         {
             if (arguments.Length == 0) throw new Exception("missing required argument: 'id'.");
 
@@ -196,7 +195,7 @@ namespace StudyCycleCLI
             Console.Write("\n╚" + string.Concat(Enumerable.Repeat<string>("═", subjectsBoxWidth)) + "╝");
         }
 
-        static async Task TryToCompleteCycle(string[] arguments)
+        static async Task TryToCompleteCycleAsync(string[] arguments)
         {
             if (arguments.Length == 0) throw new Exception("missing required argument 'ID'.");
 
@@ -231,7 +230,7 @@ namespace StudyCycleCLI
             Console.WriteLine("Study cycle completed & Reseted!");
         }
 
-        static void FindStudyCycleByTitle(string[] arguments)
+        static void FindStudyCycleByTitleSync(string[] arguments)
         {
             if (arguments.Length == 0) throw new Exception("missing title.");
 
@@ -266,7 +265,7 @@ namespace StudyCycleCLI
             Console.Write(  "└" + string.Concat            (Enumerable.Repeat<string>("─", width))                                 + "┘"  );
         }
 
-        static async Task CreateCycleCommand(string[] arguments)
+        static async Task CreateCycleCommandAsync(string[] arguments)
         {
             const double factorTwo = 60.0;
 
