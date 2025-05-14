@@ -1,4 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Data.Common;
+using System.Security.AccessControl;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using StudyCycleCLI.Model;
 using StudyCycleCLI.Util;
 using static System.Double;
@@ -49,12 +52,49 @@ namespace StudyCycleCLI
 
                 if (entity == "cycle" && command == "create") await CreateCycleCommand(arguments);
                 if (entity == "cycle" && command == "find") FindStudyCycleByTitle(arguments);
+                if (entity == "cycle" && command == "complete") await TryToCompleteCycle(arguments);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
                 Logger.Error(e.Message, e);
             }
+        }
+
+        // Commands
+        static async Task TryToCompleteCycle(string[] arguments)
+        {
+            if (arguments.Length == 0) throw new Exception("missing required argument 'ID'.");
+
+            var successedConvertingIdToInt = int.TryParse(arguments[0], out int studyCycleId);
+            if (!successedConvertingIdToInt) throw new Exception($"'{arguments[0]}' is not a valid id.");
+
+            using var db = new AppDbContext();
+
+            var studyCylce = db.StudyCycles.Include(sc => sc.Subjects).Where(sc => sc.Id == studyCycleId).FirstOrDefault();
+
+            if (studyCylce == null) throw new Exception($"study cycle with id '{studyCycleId}' was not found.");
+
+            foreach (var subject in studyCylce.Subjects)
+            {
+                if (subject.StudiedHours < subject.MaxStudyHours) throw new Exception("study cycle cannot be completed; finish all subjects first.");
+            }
+
+            // Complete it
+            foreach (var subject in studyCylce.Subjects)
+            {
+                subject.StudiedHours = 0;
+                subject.CompletedTimes += 1;
+            }
+
+            studyCylce.CompletedTimes += 1;
+            studyCylce.LastStudiedAt = DateTime.Now;
+
+            db.Update<StudyCycle>(studyCylce);
+
+            await db.SaveChangesAsync();
+
+            Console.WriteLine("Study cycle completed & Reseted!");
         }
 
         static void FindStudyCycleByTitle(string[] arguments)
@@ -208,6 +248,7 @@ namespace StudyCycleCLI
             }
         }
         
+        // Utils
         static string GetCenteredTextInline(char line, int baseWidth, string text)
         {
             return string.Concat(Enumerable.Repeat<char>(line, (baseWidth - text.Length) / 2)) + text + string.Concat(Enumerable.Repeat<char>(line, (baseWidth - text.Length) / 2));
