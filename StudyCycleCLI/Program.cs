@@ -48,12 +48,48 @@ namespace StudyCycleCLI
                 }
 
                 if (entity == "cycle" && command == "create") await CreateCycleCommand(arguments);
+                if (entity == "cycle" && command == "find") FindStudyCycleByTitle(arguments);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
                 Logger.Error(e.Message, e);
             }
+        }
+
+        static void FindStudyCycleByTitle(string[] arguments)
+        {
+            if (arguments.Length == 0) throw new Exception("missing title.");
+
+            var title = arguments[0];
+
+            using var db = new AppDbContext();
+
+            var studyCycle = db.StudyCycles.Include(sc => sc.Subjects).ToArray().Where(sc => sc.Title.ToUpper() == title.ToUpper()).FirstOrDefault();
+
+            if (studyCycle == null) throw new Exception($"study cycle '{title}' was not found.");
+
+            var width = studyCycle.Title.Length + 40;
+            var studyCycleTitle = $" [ {studyCycle.Title} ] ";
+
+            // Info
+            Console.Write(  "┌" + GetCenteredTextInline    ('─', width, studyCycleTitle)                                                    + "┐"  );
+            Console.Write("\n│" + GetFieldWithPaddingRight ("Id", studyCycle.Id.ToString(), 19).PadRight(width)                             + "│"  );
+            Console.Write("\n│" + GetFieldWithPaddingRight ("Total Subjects", studyCycle.Subjects.Count.ToString(), 19).PadRight(width)     + "│"  );
+            Console.Write("\n│" + GetFieldWithPaddingRight ("Daily Study Hours", studyCycle.DailyStudyHours.ToString(), 19).PadRight(width) + "│"  );
+            Console.Write("\n│" + GetFieldWithPaddingRight ("Completed Times", studyCycle.CompletedTimes.ToString(), 19).PadRight(width)    + "│"  );
+            Console.Write("\n│" + GetFieldWithPaddingRight ("Last Studied At", studyCycle.LastStudiedAt.ToString(), 19).PadRight(width)     + "│"  );
+            Console.Write("\n│" + GetFieldWithPaddingRight ("Created At", studyCycle.CreatedAt.ToString(), 19).PadRight(width)              + "│\n");
+            Console.Write(  "└" + string.Concat            (Enumerable.Repeat<string>("─", width))                                          + "┘"  );
+
+            Console.WriteLine();
+
+            // Config
+            Console.Write(  "┌" + GetCenteredTextInline    ('─', width, " [ Config ] ")                                            + "┐"  );
+            Console.Write("\n│" + GetFieldWithPaddingRight ("Factor One", studyCycle.FactorOne.ToString(), 14).PadRight(width)     + "│"  );
+            Console.Write("\n│" + GetFieldWithPaddingRight ("Factor Two", studyCycle.FactorTwo.ToString(), 14).PadRight(width)     + "│"  );
+            Console.Write("\n│" + GetFieldWithPaddingRight ("Factor Three", studyCycle.FactorThree.ToString(), 14).PadRight(width) + "│\n");
+            Console.Write(  "└" + string.Concat            (Enumerable.Repeat<string>("─", width))                                 + "┘"  );
         }
 
         static async Task CreateCycleCommand(string[] arguments)
@@ -170,6 +206,16 @@ namespace StudyCycleCLI
             {
                 Console.WriteLine(e);
             }
+        }
+        
+        static string GetCenteredTextInline(char line, int baseWidth, string text)
+        {
+            return string.Concat(Enumerable.Repeat<char>(line, (baseWidth - text.Length) / 2)) + text + string.Concat(Enumerable.Repeat<char>(line, (baseWidth - text.Length) / 2));
+        }
+        
+        static string GetFieldWithPaddingRight(string field, string content, int paddingAmount)
+        {
+            return $" {field}".PadRight(paddingAmount) + ":" + $" {content}";
         }
     }
 }
