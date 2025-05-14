@@ -15,8 +15,6 @@ namespace StudyCycleCLI
         {
             try
             {
-                Console.WriteLine("Hello, World!");
-
                 var entity = args[0];
                 var command = args[1];
                 var arguments = args.Skip(2).ToArray();
@@ -50,14 +48,16 @@ namespace StudyCycleCLI
                     throw new Exception($"invalid command '{command}' for entity '{entity}'.");
                 }
 
-                if (entity == "cycle" && command == "create") await CreateCycleCommand(arguments);
-                if (entity == "cycle" && command == "find") FindStudyCycleByTitle(arguments);
-                if (entity == "cycle" && command == "complete") await TryToCompleteCycle(arguments);
-                if (entity == "cycle" && command == "view") ViewStudyCycle(arguments);
-                if (entity == "cycle" && command == "study") await StudyCycleSubject(arguments);
-                if (entity == "cycle" && command == "study") await StudyCycleSubject(arguments);
-                if (entity == "cycle" && command == "unstudy") await UnstudyCycleSubject(arguments);
-                if (entity == "cycle" && command == "delete") await DeleteStudyCycle(arguments);
+                if (entity == "cycle" && command == "create"  ) { await CreateCycleCommand(arguments) ;  return; }
+                if (entity == "cycle" && command == "find"    ) { FindStudyCycleByTitle(arguments)    ;  return; }
+                if (entity == "cycle" && command == "complete") { await TryToCompleteCycle(arguments) ;  return; }
+                if (entity == "cycle" && command == "view"    ) { ViewStudyCycle(arguments)           ;  return; }
+                if (entity == "cycle" && command == "study"   ) { await StudyCycleSubject(arguments)  ;  return; }
+                if (entity == "cycle" && command == "study"   ) { await StudyCycleSubject(arguments)  ;  return; }
+                if (entity == "cycle" && command == "unstudy" ) { await UnstudyCycleSubject(arguments);  return; }
+                if (entity == "cycle" && command == "delete"  ) { await DeleteStudyCycle(arguments)   ;  return; }
+
+                Console.WriteLine($"Command '{command}' of entity '{entity}' is not implemented yet.");
             }
             catch (Exception e)
             {
