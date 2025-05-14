@@ -57,6 +57,7 @@ namespace StudyCycleCLI
                 if (entity == "cycle" && command == "study") await StudyCycleSubject(arguments);
                 if (entity == "cycle" && command == "study") await StudyCycleSubject(arguments);
                 if (entity == "cycle" && command == "unstudy") await UnstudyCycleSubject(arguments);
+                if (entity == "cycle" && command == "delete") await DeleteStudyCycle(arguments);
             }
             catch (Exception e)
             {
@@ -66,6 +67,25 @@ namespace StudyCycleCLI
         }
 
         // Commands
+        static async Task DeleteStudyCycle(string[] arguments)
+        {
+            if (arguments.Length == 0) throw new Exception("missing required argument: 'id'.");
+
+            var successfullyParsedStudyCycleId = int.TryParse(arguments[0], out var id);
+            if (!successfullyParsedStudyCycleId) throw new Exception($"'{arguments[0]}' is an invalid id.");
+
+            using var db = new AppDbContext();
+
+            var studyCycle = db.StudyCycles.Include(sc => sc.Subjects).Where(sc => sc.Id == id).FirstOrDefault();
+            if (studyCycle == null) throw new Exception($"study cycle with id '{id}' was not found.");
+
+            db.Remove<StudyCycle>(studyCycle);
+
+            await db.SaveChangesAsync();
+
+            Console.WriteLine($"'{studyCycle.Title}' was deleted!");
+        }
+
         static async Task UnstudyCycleSubject(string[] arguments)
         {
             if (arguments.Length == 0) throw new Exception("missing required argument: 'study cycle id'.");
