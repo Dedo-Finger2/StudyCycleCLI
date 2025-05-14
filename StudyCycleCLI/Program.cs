@@ -53,6 +53,7 @@ namespace StudyCycleCLI
                 if (entity == "cycle" && command == "create") await CreateCycleCommand(arguments);
                 if (entity == "cycle" && command == "find") FindStudyCycleByTitle(arguments);
                 if (entity == "cycle" && command == "complete") await TryToCompleteCycle(arguments);
+                if (entity == "cycle" && command == "view") ViewStudyCycle(arguments);
             }
             catch (Exception e)
             {
@@ -62,6 +63,56 @@ namespace StudyCycleCLI
         }
 
         // Commands
+        static void ViewStudyCycle(string[] arguments)
+        {
+            if (arguments.Length == 0) throw new Exception("missing required argument: 'id'.");
+
+            var successfullyParsedStudyCycleId = int.TryParse(arguments[0], out var id);
+            if (!successfullyParsedStudyCycleId) throw new Exception($"'{arguments[0]}' is an invalid id.");
+
+            var lockedOrFreeSubjectsArg = arguments.Last();
+
+            using var db = new AppDbContext();
+
+            var studyCycle = db.StudyCycles.Include(sc => sc.Subjects).Where(sc => sc.Id == id).FirstOrDefault();
+            if (studyCycle == null) throw new Exception($"study cycle with id '{id}' was not found.");
+
+            List<StudyCycleSubject> subjects;
+
+            switch (lockedOrFreeSubjectsArg)
+            {
+                case "--lockedSubjects" : subjects = studyCycle.Subjects.Where(sb => sb.StudiedHours == sb.MaxStudyHours).ToList(); break;
+                case "--freeSubjects"   : subjects = studyCycle.Subjects.Where(sb => sb.StudiedHours <  sb.MaxStudyHours).ToList(); break;
+                default                 : subjects = studyCycle.Subjects                                                          ; break;
+            }
+
+            var width = studyCycle.Title.Length + 40;
+            var studyCycleTitle = $" [ {studyCycle.Title} ] ";
+
+            // Info
+            Console.Write("┌" + GetCenteredTextInline('─', width, studyCycleTitle) + "┐");
+            Console.Write("\n│" + GetFieldWithPaddingRight("Id", studyCycle.Id.ToString(), 19).PadRight(width) + "│");
+            Console.Write("\n│" + GetFieldWithPaddingRight("Total Subjects", studyCycle.Subjects.Count.ToString(), 19).PadRight(width) + "│");
+            Console.Write("\n│" + GetFieldWithPaddingRight("Daily Study Hours", studyCycle.DailyStudyHours.ToString(), 19).PadRight(width) + "│");
+            Console.Write("\n│" + GetFieldWithPaddingRight("Completed Times", studyCycle.CompletedTimes.ToString(), 19).PadRight(width) + "│");
+            Console.Write("\n│" + GetFieldWithPaddingRight("Last Studied At", studyCycle.LastStudiedAt.ToString(), 19).PadRight(width) + "│");
+            Console.Write("\n│" + GetFieldWithPaddingRight("Created At", studyCycle.CreatedAt.ToString(), 19).PadRight(width) + "│\n");
+            Console.Write("└" + string.Concat(Enumerable.Repeat<string>("─", width)) + "┘");
+
+            Console.WriteLine();
+
+            // Subjects
+            var subjectsBoxWidth = 150;
+            var longestTitleLength = GetLongerSubjectTitle(subjects);
+
+            Console.Write("╔" + GetCenteredTextInline('═', subjectsBoxWidth, " [ Subjects ] ") + "╗");
+            foreach (var subject in subjects)
+            {
+                Console.Write("\n║" + GetFieldWithPaddingRight($"{subject.StudiedHours}/{subject.MaxStudyHours}h - {subject.Title}", GetSubjectStudiedBoxes(subject.MaxStudyHours, subject.StudiedHours).ToString(), longestTitleLength).PadRight(subjectsBoxWidth) + "║");
+            }
+            Console.Write("\n╚" + string.Concat(Enumerable.Repeat<string>("═", subjectsBoxWidth)) + "╝");
+        }
+
         static async Task TryToCompleteCycle(string[] arguments)
         {
             if (arguments.Length == 0) throw new Exception("missing required argument 'ID'.");
@@ -247,8 +298,38 @@ namespace StudyCycleCLI
                 Console.WriteLine(e);
             }
         }
-        
+
         // Utils
+        static int GetLongerSubjectTitle(List<StudyCycleSubject> subjects)
+        {
+            var bigger = 0;
+
+            foreach (var subject in subjects)
+            {
+                var titleStudiedHoursAndMaxStudyHours = $" {subject.StudiedHours}/{subject.MaxStudyHours}h - {subjects.First().Title}:";
+                if (titleStudiedHoursAndMaxStudyHours.Length > bigger) bigger = titleStudiedHoursAndMaxStudyHours.Length;
+            }
+
+            return bigger;
+        }
+
+        static string GetSubjectStudiedBoxes(int maxStudyHours, int studiedHours)
+        {
+            List<string> subjectStudiedBoxes = new List<string>();
+
+            for (int i = 0; i < studiedHours; i++)
+            {
+                subjectStudiedBoxes.Add("[x]");
+            }
+
+            for (int i = 0; i < maxStudyHours - studiedHours; i++)
+            {
+                subjectStudiedBoxes.Add("[]");
+            }
+
+            return string.Join("", subjectStudiedBoxes);
+        }
+
         static string GetCenteredTextInline(char line, int baseWidth, string text)
         {
             return string.Concat(Enumerable.Repeat<char>(line, (baseWidth - text.Length) / 2)) + text + string.Concat(Enumerable.Repeat<char>(line, (baseWidth - text.Length) / 2));
