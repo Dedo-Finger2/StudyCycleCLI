@@ -54,6 +54,7 @@ namespace StudyCycleCLI
                 if (entity == "cycle" && command == "find") FindStudyCycleByTitle(arguments);
                 if (entity == "cycle" && command == "complete") await TryToCompleteCycle(arguments);
                 if (entity == "cycle" && command == "view") ViewStudyCycle(arguments);
+                if (entity == "cycle" && command == "study") await StudyCycleSubject(arguments);
             }
             catch (Exception e)
             {
@@ -63,6 +64,36 @@ namespace StudyCycleCLI
         }
 
         // Commands
+        static async Task StudyCycleSubject(string[] arguments)
+        {
+            if (arguments.Length == 0) throw new Exception("missing required argument: 'study cycle id'.");
+            if (arguments.Length < 3) throw new Exception("missing required argument: 'subject id'.");
+
+            var successfullyParsedStudyCycleId = int.TryParse(arguments[0], out var studyCycleId);
+            if (!successfullyParsedStudyCycleId) throw new Exception($"'{arguments[0]}' is an invalid id.");
+
+            var successfullyParsedSubjectId = int.TryParse(arguments[2], out var subjectId);
+            if (!successfullyParsedSubjectId) throw new Exception($"'{arguments[2]}' is an invalid id.");
+
+            using var db = new AppDbContext();
+
+            var studyCycle = db.StudyCycles.Include(sc => sc.Subjects).Where(sc => sc.Id == studyCycleId).FirstOrDefault();
+            if (studyCycle == null) throw new Exception($"study cycle with id '{studyCycleId}' was not found.");
+
+            var subject = studyCycle.Subjects.Where(sb => sb.Id == subjectId).FirstOrDefault();
+            if (subject == null) throw new Exception($"subject with id '{subjectId}' was not found.");
+
+            if (subject.StudiedHours == subject.MaxStudyHours) throw new Exception($"'{subject.Title}' cannot be studied anymore (max reached).");
+
+            subject.StudiedHours += 1;
+
+            db.Update(studyCycle);
+
+            await db.SaveChangesAsync();
+
+            Console.WriteLine($"Added 1h to '{subject.Title}'!");
+        }
+
         static void ViewStudyCycle(string[] arguments)
         {
             if (arguments.Length == 0) throw new Exception("missing required argument: 'id'.");
