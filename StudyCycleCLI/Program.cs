@@ -171,7 +171,7 @@ namespace StudyCycleCLI
             Console.Write("╔" + GetCenteredTextInline('═', subjectsBoxWidth, " [ Subjects ] ") + "╗");
             foreach (var subject in subjects)
             {
-                Console.Write("\n║" + GetFieldWithPaddingRight($"{subject.Id} - {subject.Title}", GetSubjectStudiedBoxes(subject.MaxStudyHours, subject.StudiedHours).ToString() + $" - {subject.StudiedHours}/{subject.MaxStudyHours}h", longestTitleLength).PadRight(subjectsBoxWidth) + "║");
+                Console.Write("\n║" + GetFieldWithPaddingRight($"{subject.Id} - {subject.Title}", GetSubjectStudiedBoxes(subject.MaxStudyHours, subject.StudiedHours).ToString() + $"- {subject.StudiedHours}/{subject.MaxStudyHours}h", longestTitleLength).PadRight(subjectsBoxWidth) + "║");
             }
             Console.Write("\n╚" + string.Concat(Enumerable.Repeat<string>("═", subjectsBoxWidth)) + "╝");
         }
@@ -382,12 +382,12 @@ namespace StudyCycleCLI
 
             for (int i = 0; i < studiedHours; i++)
             {
-                subjectStudiedBoxes.Add("[x]");
+                subjectStudiedBoxes.Add("■ ");
             }
 
             for (int i = 0; i < maxStudyHours - studiedHours; i++)
             {
-                subjectStudiedBoxes.Add("[]");
+                subjectStudiedBoxes.Add("□ ");
             }
 
             return string.Join("", subjectStudiedBoxes);
