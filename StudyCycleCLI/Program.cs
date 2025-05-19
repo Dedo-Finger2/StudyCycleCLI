@@ -21,17 +21,17 @@ namespace StudyCycleCLI
                 var entityCommands = new Dictionary<string, string[]>()
                 {
                     {
-                        "cycle", 
+                        "cycle",
                         [
                             "create",
                             "find",
                             "complete",
                             "view",
-                            "edit", 
-                            "addSubject", 
-                            "study", 
-                            "unstudy", 
-                            "export", 
+                            "edit",
+                            "addSubject",
+                            "study",
+                            "unstudy",
+                            "export",
                             "delete"
                         ]
                     }
@@ -39,7 +39,7 @@ namespace StudyCycleCLI
 
                 // --- [ Getting possible commands for each entity ] --- \\
                 entityCommands.TryGetValue(entity, out var possibleCommands);
-            
+
                 // --- [ Validating Command & Entity ] --- \\
                 if (possibleCommands == null) throw new Exception($"invalid entity '{entity}'.");
 
@@ -48,13 +48,13 @@ namespace StudyCycleCLI
                     throw new Exception($"invalid command '{command}' for entity '{entity}'.");
                 }
 
-                if (entity == "cycle" && command == "create"  ) { await CreateCycleCommandAsync  (arguments);  return; }
-                if (entity == "cycle" && command == "find"    ) { FindStudyCycleByTitleSync      (arguments);  return; }
-                if (entity == "cycle" && command == "complete") { await TryToCompleteCycleAsync  (arguments);  return; }
-                if (entity == "cycle" && command == "view"    ) { ViewStudyCycleSync             (arguments);  return; }
-                if (entity == "cycle" && command == "study"   ) { await StudyCycleSubjectAsync   (arguments);  return; }
-                if (entity == "cycle" && command == "unstudy" ) { await UnstudyCycleSubjectAsync (arguments);  return; }
-                if (entity == "cycle" && command == "delete"  ) { await DeleteStudyCycleAsync    (arguments);  return; }
+                if (entity == "cycle" && command == "create") { await CreateCycleCommandAsync(arguments); return; }
+                if (entity == "cycle" && command == "find") { FindStudyCycleByTitleSync(arguments); return; }
+                if (entity == "cycle" && command == "complete") { await TryToCompleteCycleAsync(arguments); return; }
+                if (entity == "cycle" && command == "view") { ViewStudyCycleSync(arguments); return; }
+                if (entity == "cycle" && command == "study") { await StudyCycleSubjectAsync(arguments); return; }
+                if (entity == "cycle" && command == "unstudy") { await UnstudyCycleSubjectAsync(arguments); return; }
+                if (entity == "cycle" && command == "delete") { await DeleteStudyCycleAsync(arguments); return; }
 
                 Console.WriteLine($"Command '{command}' of entity '{entity}' is not implemented yet.");
             }
@@ -74,6 +74,7 @@ namespace StudyCycleCLI
             if (!successfullyParsedStudyCycleId) throw new Exception($"'{arguments[0]}' is an invalid id.");
 
             using var db = new AppDbContext();
+            db.Database.EnsureCreated();
 
             var studyCycle = db.StudyCycles.Include(sc => sc.Subjects).Where(sc => sc.Id == id).FirstOrDefault();
             if (studyCycle == null) throw new Exception($"study cycle with id '{id}' was not found.");
@@ -97,7 +98,8 @@ namespace StudyCycleCLI
             if (!successfullyParsedSubjectId) throw new Exception($"'{arguments[2]}' is an invalid id.");
 
             using var db = new AppDbContext();
-
+            db.Database.EnsureCreated();
+            
             var studyCycle = db.StudyCycles.Include(sc => sc.Subjects).Where(sc => sc.Id == studyCycleId).FirstOrDefault();
             if (studyCycle == null) throw new Exception($"study cycle with id '{studyCycleId}' was not found.");
 
@@ -127,6 +129,7 @@ namespace StudyCycleCLI
             if (!successfullyParsedSubjectId) throw new Exception($"'{arguments[2]}' is an invalid id.");
 
             using var db = new AppDbContext();
+            db.Database.EnsureCreated();
 
             var studyCycle = db.StudyCycles.Include(sc => sc.Subjects).Where(sc => sc.Id == studyCycleId).FirstOrDefault();
             if (studyCycle == null) throw new Exception($"study cycle with id '{studyCycleId}' was not found.");
@@ -155,6 +158,7 @@ namespace StudyCycleCLI
             var lockedOrFreeSubjectsArg = arguments.Last();
 
             using var db = new AppDbContext();
+            db.Database.EnsureCreated();
 
             var studyCycle = db.StudyCycles.Include(sc => sc.Subjects).Where(sc => sc.Id == id).FirstOrDefault();
             if (studyCycle == null) throw new Exception($"study cycle with id '{id}' was not found.");
@@ -203,6 +207,7 @@ namespace StudyCycleCLI
             if (!successedConvertingIdToInt) throw new Exception($"'{arguments[0]}' is not a valid id.");
 
             using var db = new AppDbContext();
+            db.Database.EnsureCreated();
 
             var studyCylce = db.StudyCycles.Include(sc => sc.Subjects).Where(sc => sc.Id == studyCycleId).FirstOrDefault();
 
@@ -237,6 +242,7 @@ namespace StudyCycleCLI
             var title = arguments[0];
 
             using var db = new AppDbContext();
+            db.Database.EnsureCreated();
 
             var studyCycle = db.StudyCycles.Include(sc => sc.Subjects).ToArray().Where(sc => sc.Title.ToUpper() == title.ToUpper()).FirstOrDefault();
 
@@ -342,7 +348,7 @@ namespace StudyCycleCLI
             } while (createAnotherSubject.Key == ConsoleKey.Y);
 
             var factorOne = subjects.Sum(subject => (int)Math.Round(((int)subject.Difficulty + 1 + (int)subject.AmountOfContent + 1) * subject.Weight));
-            var factorThree = factorTwo / factorOne;
+            var factorThree = factorOne / factorTwo;
 
             foreach (var subject in subjects)
             {
@@ -370,6 +376,7 @@ namespace StudyCycleCLI
             try
             {
                 using var db = new AppDbContext();
+                db.Database.EnsureCreated();
 
                 db.StudyCycles.Add(studyCycle);
 
